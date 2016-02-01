@@ -24,8 +24,6 @@ library(randomForest)
 ## Data Cleaning
 To clean the data, the first row index and all colomuns with NA were removed. 
 ```{r}
-# Remove everything in current working library
-# rm(list = ls())
 # Read cleaned training and testing data 
 workoutTraining <- read.csv("./pml-training.csv")
 workoutTesting <- read.csv("./pml-testing.csv")
@@ -74,11 +72,12 @@ the Random Forests has much better accuracy then other models.
 ## Predict testing data
 ```{r}
 confusionMatrix(pred, workoutTrainingSubTest$classe)
-PredictForest = predict(RandomForest, newdata = workoutTesting)
+PredictForest = predict(rfFit, newdata = workoutTesting)
 PredictForest
 ```
 ```
 We get 99,9% accuracy on the train data.
+
 ## Write the Prediction to files
 ```{r}
 # Function to write a vector to files
@@ -91,7 +90,7 @@ pml_write_files = function(x){
   }
 }
 # Call the function
-pml_write_files(PredictForest)
+#pml_write_files(PredictForest)
 
 ```
 
