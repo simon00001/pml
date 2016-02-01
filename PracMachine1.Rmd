@@ -1,0 +1,98 @@
+---
+title: "Practical Machine Learning Project - Prediction Assignment"
+author: "Simon Kong"
+date: "Jan 10, 2016"
+output: html_document
+---
+#Executive Summary
+This report is made for the purposes of the Practical Machine Learning course offered by John Hopkins University through the Coursera platform. The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. 
+
+In this project, We are given two datasets, the training and testing data set.The data is from accelerometers on the belt, forearm, arm, and dumbell of 6 research study participants. Our training data consists of accelerometer data and a label identifying the quality of the activity the participant was doing. Our testing data consists of accelerometer data without the identifying label. Our goal is to train the first data set by means of machine learning and make predictions in the second one. The trained variable is the way the exercises are being made and is a factor variable with five outcomes, A, B, C, D and E.
+
+```{r}
+#setwd("c:/Users/sy.kong/Documents/GitHub/practical_machine/project")
+```
+
+```{r, echo=FALSE}
+
+library(knitr)
+library(caret)
+library(randomForest)
+```
+## Data Cleaning
+To clean the data, the first row index and all colomuns with NA were removed. 
+```{r}
+# Remove everything in current working library
+# rm(list = ls())
+# Read cleaned training and testing data 
+workoutTraining <- read.csv("./pml-training.csv")
+workoutTesting <- read.csv("./pml-testing.csv")
+```
+
+
+## Exploratory Data Analysis
+
+Cross Validation was performed to find the out of sample errors. 
+
+## Exploratory Data Analysis
+```{r}
+dim(workoutTraining)
+sum(complete.cases(workoutTraining))
+# we see that there are "X" and "user_name" columns which is not useful for creating model.
+removeColums <- grep("X|user_name", names(workoutTraining))
+workoutTraining <- workoutTraining[, -removeColums]
+zeroVar <- nearZeroVar(workoutTraining)
+workoutTraining <- workoutTraining[, -zeroVar]
+NAs <- apply(workoutTraining, 2, function(x) {
+    sum(is.na(x))
+})
+workoutTraining <- workoutTraining[, which(NAs == 0)]
+dim(workoutTraining)
+Index <- createDataPartition(y = workoutTraining$classe, p = 0.7, list = FALSE)
+workoutTrainingSubTrain <- workoutTraining[Index, ]
+workoutTrainingSubTest <- workoutTraining[-Index, ]
+
+```
+
+## Exploratory Data Analysis
+
+## Build random forest model with full training model
+
+```{r}
+rfFit <- randomForest(classe ~ ., data = workoutTrainingSubTrain, importance = TRUE, ntrees = 10)
+rfFit
+# cross validation for Random Forests
+pred <- predict(rfFit,workoutTrainingSubTest)
+workoutTrainingSubTest$predRight <- pred==workoutTrainingSubTest$classe
+table(pred,workoutTrainingSubTest$classe)
+
+```
+the Random Forests has much better accuracy then other models.
+
+## Predict testing data
+```{r}
+confusionMatrix(pred, workoutTrainingSubTest$classe)
+PredictForest = predict(RandomForest, newdata = workoutTesting)
+PredictForest
+```
+```
+We get 99,9% accuracy on the train data.
+## Write the Prediction to files
+```{r}
+# Function to write a vector to files
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_", i ,".txt")
+    write.table(x[i], file = filename, quote = FALSE,
+                row.names = FALSE, col.names = FALSE)
+  }
+}
+# Call the function
+pml_write_files(PredictForest)
+
+```
+
+
