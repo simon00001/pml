@@ -72,8 +72,8 @@ the Random Forests has much better accuracy then other models.
 ## Predict testing data
 ```{r}
 confusionMatrix(pred, workoutTrainingSubTest$classe)
-PredictForest = predict(rfFit, newdata = workoutTesting)
-PredictForest
+#PredictForest = predict(rfFit, newdata = workoutTesting)
+#PredictForest
 ```
 ```
 We get 99,9% accuracy on the train data.
