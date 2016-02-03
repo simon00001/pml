@@ -11,9 +11,6 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 In this project, We are given two datasets, the training and testing data set.The data is from accelerometers on the belt, forearm, arm, and dumbell of 6 research study participants. Our training data consists of accelerometer data and a label identifying the quality of the activity the participant was doing. Our testing data consists of accelerometer data without the identifying label. Our goal is to train the first data set by means of machine learning and make predictions in the second one. The trained variable is the way the exercises are being made and is a factor variable with five outcomes, A, B, C, D and E.
 
-```{r}
-#setwd("c:/Users/sy.kong/Documents/GitHub/practical_machine/project")
-```
 
 ```{r, echo=FALSE}
 
@@ -21,21 +18,12 @@ library(knitr)
 library(caret)
 library(randomForest)
 ```
-## Data Cleaning
-To clean the data, the first row index and all colomuns with NA were removed. 
+## Data Loading and Cleaning
+To load the data and clean the data, the first row index and all colomuns with NA were removed. 
 ```{r}
 # Read cleaned training and testing data 
 workoutTraining <- read.csv("./pml-training.csv")
 workoutTesting <- read.csv("./pml-testing.csv")
-```
-
-
-## Exploratory Data Analysis
-
-Cross Validation was performed to find the out of sample errors. 
-
-## Exploratory Data Analysis
-```{r}
 dim(workoutTraining)
 sum(complete.cases(workoutTraining))
 # we see that there are "X" and "user_name" columns which is not useful for creating model.
@@ -46,7 +34,21 @@ workoutTraining <- workoutTraining[, -zeroVar]
 NAs <- apply(workoutTraining, 2, function(x) {
     sum(is.na(x))
 })
+
+```
+
+
+## Exploratory Data Analysis
+Exploration done by doing a summary of the dataset. Around 100 variables have mostly NAs as values. 
+```{r}
 workoutTraining <- workoutTraining[, which(NAs == 0)]
+
+```
+## Prepare cross-validation data
+Partition the original training data into 70% training and 30% test.
+
+```{r}
+
 dim(workoutTraining)
 Index <- createDataPartition(y = workoutTraining$classe, p = 0.7, list = FALSE)
 workoutTrainingSubTrain <- workoutTraining[Index, ]
@@ -54,9 +56,9 @@ workoutTrainingSubTest <- workoutTraining[-Index, ]
 
 ```
 
-## Exploratory Data Analysis
-
 ## Build random forest model with full training model
+Chosen model is random forest which already has some built-in cross-validation function.
+Cross Validation was performed to find the out of sample errors. 
 
 ```{r}
 rfFit <- randomForest(classe ~ ., data = workoutTrainingSubTrain, importance = TRUE, ntrees = 10)
@@ -66,17 +68,13 @@ pred <- predict(rfFit,workoutTrainingSubTest)
 workoutTrainingSubTest$predRight <- pred==workoutTrainingSubTest$classe
 table(pred,workoutTrainingSubTest$classe)
 
+confusionMatrix(pred, workoutTrainingSubTest$classe)
+
 ```
+Confusion matrix for test set vs model prediction shows good prediction across all 5 classes as well.Accuracy of the fit with the test set shows 99.85%, or an error of 0.15%.  
 the Random Forests has much better accuracy then other models.
 
-## Predict testing data
-```{r}
-confusionMatrix(pred, workoutTrainingSubTest$classe)
-#PredictForest = predict(rfFit, newdata = workoutTesting)
-#PredictForest
-```
-```
-We get 99,9% accuracy on the train data.
+We get 99.85% accuracy on the train data.
 
 ## Write the Prediction to files
 ```{r}
